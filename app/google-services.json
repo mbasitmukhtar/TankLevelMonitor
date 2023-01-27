@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "414641968309",
+    "firebase_url": "https://tank-level-monitor-8a2ca-default-rtdb.firebaseio.com",
+    "project_id": "tank-level-monitor-8a2ca",
+    "storage_bucket": "tank-level-monitor-8a2ca.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:414641968309:android:9f7c8c0eb3d4d75e4c5afc",
+        "android_client_info": {
+          "package_name": "com.example.tanklevelmonitor"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "414641968309-rtl3d9g2s90jgtqs45610s8goont9rrq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBnESaprJ0I2C9xmxh31Mm7EKwGRizk0Qo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "414641968309-rtl3d9g2s90jgtqs45610s8goont9rrq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
