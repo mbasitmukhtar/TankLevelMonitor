@@ -1,7 +1,6 @@
 package com.example.tanklevelmonitor.fragments
 
-import android.Manifest
-import android.content.pm.PackageManager
+import android.app.AlertDialog
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.util.Log
@@ -9,17 +8,17 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.tanklevelmonitor.R
 import com.example.tanklevelmonitor.databinding.FragmentHomeBinding
 import com.example.tanklevelmonitor.utils.Constants.PREFERENCES_FIRST_TIME
+import com.example.tanklevelmonitor.utils.Constants.USERID
 import com.example.tanklevelmonitor.utils.SharedPrefs
 import com.example.tanklevelmonitor.utils.UserData
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.database.ktx.getValue
@@ -33,11 +32,10 @@ class HomeFragment : Fragment() {
     lateinit var binding: FragmentHomeBinding
     var userId = ""
     val db = Firebase.database
-    var permissionsGranted = 0
+    lateinit var userReference: DatabaseReference
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         // Inflate the layout for this fragment
         binding = FragmentHomeBinding.inflate(inflater, container, false)
@@ -51,10 +49,8 @@ class HomeFragment : Fragment() {
         checkScreenSize()
         showProgressBar()
         firstTimeCheck()
+
         handleArguments()
-        listenForLevelValue()
-        checkForWifiAndLevelsDataToDisplay()
-        handleNavigation()
     }
 
     private fun checkScreenSize() {
@@ -71,65 +67,23 @@ class HomeFragment : Fragment() {
     private fun firstTimeCheck() {
         val firstTime = SharedPrefs.getFirstTimeFlag(requireContext(), PREFERENCES_FIRST_TIME)
         if (firstTime) {
-            checkPermissions()
+            findNavController().navigate(R.id.action_homeFragment_to_initFragment)
         } else {
-            if (userId == "") {
-                checkPermissions()
-            }
+
+            listenForLevelValue()
+            checkForWifiAndLevelsDataToDisplay()
+            handleNavigation()
         }
-    }
-
-    private fun checkPermissions() {
-        if (ActivityCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.CAMERA
-            ) == PackageManager.PERMISSION_DENIED
-        ) {
-            permissionsGranted = 0
-            requestPermissionLauncher.launch(
-                arrayOf(
-                    Manifest.permission.CAMERA
-                )
-            )
-        }
-    }
-
-    private val requestPermissionLauncher =
-        registerForActivityResult(
-            ActivityResultContracts.RequestMultiplePermissions()
-        )
-        { result ->
-            Log.d(TAG, "requestPermissionLauncher: ${result.keys}")
-            Log.d(TAG, "requestPermissionLauncher: ${result.values}")
-            for (value in result.values) {
-                if (value) {
-                    permissionsGranted++
-                }
-            }
-            if (permissionsGranted == result.values.size) {
-//                Successful
-                askToScanFunction()
-            }
-        }
-
-
-    private fun askToScanFunction() {
-        Toast.makeText(
-            requireContext(),
-            "Please scan your device's QR Code",
-            Toast.LENGTH_SHORT
-        ).show()
-        findNavController().navigate(R.id.action_homeFragment_to_QRCodeScannerFragment)
     }
 
     private fun handleNavigation() {
-        binding.buttonScanQr.tvMenuText.text = "Scan QR"
+        binding.buttonScanQr.tvMenuText.text = getString(R.string.scan_qr)
         binding.buttonScanQr.ivMenuImg.setImageResource(R.drawable.img_qr_code)
         binding.buttonScanQr.root.setOnClickListener {
             findNavController().navigate(R.id.action_homeFragment_to_QRCodeScannerFragment)
         }
 
-        binding.buttonSettings.tvMenuText.text = "Settings"
+        binding.buttonSettings.tvMenuText.text = getString(R.string.settings)
         binding.buttonSettings.ivMenuImg.setImageResource(R.drawable.img_settings)
         binding.buttonSettings.root.setOnClickListener {
             findNavController().navigate(R.id.action_homeFragment_to_settingsFragment)
@@ -137,11 +91,19 @@ class HomeFragment : Fragment() {
     }
 
     private fun handleArguments() {
-        arguments?.getCharSequence("qrText")?.let {
-            SharedPrefs.storeUserData(requireContext(), "userId", it.toString())
-            userId = it.toString()
-            SharedPrefs.storeFirstTimeFlag(requireContext(), PREFERENCES_FIRST_TIME, false)
+        val mac = SharedPrefs.getUserData(requireContext(), USERID)
+        if (mac == "") {
+            Toast.makeText(
+                requireContext(), "Please connect to device using Wifi.", Toast.LENGTH_LONG
+            ).show()
+        } else {
+            userId = mac
         }
+//        arguments?.getCharSequence("qrText")?.let {
+//            SharedPrefs.storeUserData(requireContext(), "userId", it.toString())
+//            userId = it.toString()
+//            SharedPrefs.storeFirstTimeFlag(requireContext(), PREFERENCES_FIRST_TIME, false)
+//        }
     }
 
     private fun checkForWifiAndLevelsDataToDisplay() {
@@ -156,54 +118,84 @@ class HomeFragment : Fragment() {
                 if (minLevel == null || maxLevel == null) {
                     Toast.makeText(
                         requireContext(),
-                        "Please enter level values.",
+                        "Please enter max and min level values.",
                         Toast.LENGTH_LONG
                     ).show()
-                    findNavController().navigate(R.id.action_homeFragment_to_initialQuestionsFragment)
+
+//                        TODO (handle case if min, max values null)
+//                    findNavController().navigate(R.id.action_homeFragment_to_initialQuestionsFragment)
                 }
             }
         }
 
     }
 
-    private fun listenForLevelValue() {
-        val userRef = db.getReference("devices").child(userId)
-        val userRefListener = object : ValueEventListener {
-            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                // Get User object and use the values to update the UI
-                val userData = dataSnapshot.getValue<UserData>()
+    private val userRefListener = object : ValueEventListener {
+        override fun onDataChange(dataSnapshot: DataSnapshot) {
+            // Get User object and use the values to update the UI
+            val userData = dataSnapshot.getValue<UserData>()
 
-                val timestamp = userData?.time
-                Log.d(TAG, "listenForLevelValue Value is: $timestamp")
-                timestamp?.let {
-                    val dateEpochs =
-                        SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(Date(timestamp * 1000))
-                    Log.d(TAG, "checkForWifiAndLevelsDataToDisplay: dateEpochs: $dateEpochs")
-                    binding.timestampText.text = "Timestamp: $dateEpochs"
-                }
-
-                val levelValue = userData?.level
-                Log.d(TAG, "listenForLevelValue Value is: $levelValue")
-
-                binding.levelPercentageText.text = "$levelValue%"
-                binding.waterLevelMeter.chargeLevel = levelValue?.toInt()
-                hideProgressBar()
-
-                val pending = userData?.pending
-                if (pending == true) {
-                    binding.pendingSyncText.visibility = View.VISIBLE
-                } else {
-                    binding.pendingSyncText.visibility = View.GONE
-                }
+            val timestamp = userData?.time
+            Log.d(TAG, "listenForLevelValue Value is: $timestamp")
+            timestamp?.let {
+                val dateEpochs =
+                    SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(Date(timestamp * 1000))
+                Log.d(TAG, "checkForWifiAndLevelsDataToDisplay: dateEpochs: $dateEpochs")
+                binding.timestampText.text = "Timestamp: $dateEpochs"
             }
 
-            override fun onCancelled(databaseError: DatabaseError) {
-                // Getting Post failed, log a message
-                Log.w(TAG, "listenForLevelValue onCancelled", databaseError.toException())
+            val levelValue = userData?.level
+            Log.d(TAG, "listenForLevelValue Value is: $levelValue")
+
+            binding.levelPercentageText.text = "$levelValue%"
+            binding.waterLevelMeter.chargeLevel = levelValue?.toInt()
+            hideProgressBar()
+
+            val pending = userData?.pending
+            if (pending == true) {
+                binding.pendingSyncText.text = "Sync Pending by device."
+                binding.pendingSyncText.visibility = View.VISIBLE
+            } else {
+                binding.pendingSyncText.visibility = View.GONE
+            }
+            val ip = userData?.ip
+            if (ip == "" || ip == null) {
+                binding.connectionModeText.text = "Device has not internet connection."
+                showAlertForDirectConnection()
             }
         }
 
-        userRef.addValueEventListener(userRefListener)
+        override fun onCancelled(databaseError: DatabaseError) {
+            // Getting Post failed, log a message
+            Log.w(TAG, "listenForLevelValue onCancelled", databaseError.toException())
+        }
+    }
+
+
+    private fun listenForLevelValue() {
+        userReference = db.getReference("devices").child(userId)
+        userReference.addValueEventListener(userRefListener)
+    }
+
+    private fun showAlertForDirectConnection() {
+        val builder = AlertDialog.Builder(requireContext())
+        builder.setTitle("Message").setNegativeButton(
+            "No"
+        ) { dialog, id ->
+            run {
+                dialog.cancel()
+            }
+        }.setPositiveButton(
+            "Yes"
+        ) { dialog, id ->
+            run {
+                connectToDeviceHotspot()
+            }
+        }
+    }
+
+    private fun connectToDeviceHotspot() {
+        Log.d(TAG, "connectToDeviceHotspot: ")
     }
 
     private fun hideProgressBar() {
@@ -212,5 +204,14 @@ class HomeFragment : Fragment() {
 
     private fun showProgressBar() {
         binding.progressBar.visibility = View.VISIBLE
+    }
+
+    override fun onStop() {
+        super.onStop()
+        try {
+            userReference.removeEventListener(userRefListener)
+        } catch (e: Exception) {
+            Log.d(TAG, "onStop: Exception: ${e.message}")
+        }
     }
 }

@@ -37,7 +37,7 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.core:core-ktx:+'
+    implementation 'androidx.core:core-ktx:1.9.0'
     def nav_version = "2.5.3"
 
     implementation 'androidx.core:core-ktx:1.7.0'
@@ -60,4 +60,8 @@ dependencies {
     implementation 'com.github.yuriy-budiyev:code-scanner:2.3.2'
 
     implementation 'eo.view:batterymeter:2.0.0'
+
+    implementation 'com.android.volley:volley:1.2.1'
+    implementation 'com.squareup.okhttp3:okhttp:4.10.0'
+
 }

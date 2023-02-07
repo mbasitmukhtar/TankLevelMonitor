@@ -1,7 +1,5 @@
 package com.example.tanklevelmonitor.utils
 
-import java.sql.Timestamp
-
 data class UserData(
     val ap_pass: String? = "",
     val ap_ssid: String? = "",
@@ -11,5 +9,6 @@ data class UserData(
     val ssid: String? = "",
     val pass: String? = "",
     val time: Long? = 0L,
-    val pending: Boolean? = false
+    val pending: Boolean? = false,
+    val ip: String? = ""
 )

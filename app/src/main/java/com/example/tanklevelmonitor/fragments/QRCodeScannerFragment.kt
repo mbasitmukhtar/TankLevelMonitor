@@ -2,6 +2,7 @@ package com.example.tanklevelmonitor.fragments
 
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -13,15 +14,14 @@ import androidx.core.os.bundleOf
 import androidx.navigation.fragment.findNavController
 import com.budiyev.android.codescanner.AutoFocusMode
 import com.budiyev.android.codescanner.CodeScanner
-import com.budiyev.android.codescanner.CodeScannerView
 import com.budiyev.android.codescanner.DecodeCallback
 import com.budiyev.android.codescanner.ErrorCallback
 import com.budiyev.android.codescanner.ScanMode
 import com.example.tanklevelmonitor.R
 import com.example.tanklevelmonitor.databinding.FragmentQRCodeScannerBinding
-import com.example.tanklevelmonitor.utils.SharedPrefs
 
 class QRCodeScannerFragment : Fragment() {
+    private val TAG = "QRCodeScannerFragment"
     lateinit var binding: FragmentQRCodeScannerBinding
     private lateinit var codeScanner: CodeScanner
     var codeScannerInit = false
@@ -50,6 +50,7 @@ class QRCodeScannerFragment : Fragment() {
         // Parameters (default values)
         codeScanner.camera = CodeScanner.CAMERA_BACK // or CAMERA_FRONT or specific camera id
         codeScanner.formats = CodeScanner.ALL_FORMATS // list of type BarcodeFormat,
+
         // ex. listOf(BarcodeFormat.QR_CODE)
         codeScanner.autoFocusMode = AutoFocusMode.SAFE // or CONTINUOUS
         codeScanner.scanMode = ScanMode.SINGLE // or CONTINUOUS or PREVIEW
@@ -59,9 +60,13 @@ class QRCodeScannerFragment : Fragment() {
         // Callbacks
         codeScanner.decodeCallback = DecodeCallback {
             requireActivity().runOnUiThread {
-                SharedPrefs.storeUserData(requireContext(), "userId", it.toString())
+//                SharedPrefs.storeUserData(requireContext(), "userId", it.toString())
+                Log.d(TAG, "setUpScanner: ${it.text}")
                 val bundle = bundleOf("qrText" to it.text)
-                findNavController().navigate(R.id.homeFragment, bundle)
+                findNavController().navigate(
+                    R.id.action_QRCodeScannerFragment_to_configureDeviceFragment,
+                    bundle
+                )
             }
         }
 
@@ -78,20 +83,6 @@ class QRCodeScannerFragment : Fragment() {
             codeScanner.startPreview()
         }
         codeScannerInit = true
-    }
-
-    override fun onResume() {
-        super.onResume()
-        if (codeScannerInit) {
-            codeScanner.startPreview()
-        }
-    }
-
-    override fun onPause() {
-        if (codeScannerInit) {
-            codeScanner.releaseResources()
-        }
-        super.onPause()
     }
 
     private fun setUpPermissions() {
@@ -128,5 +119,20 @@ class QRCodeScannerFragment : Fragment() {
                 }
             }
         }
+    }
+
+
+    override fun onResume() {
+        super.onResume()
+        if (codeScannerInit) {
+            codeScanner.startPreview()
+        }
+    }
+
+    override fun onPause() {
+        if (codeScannerInit) {
+            codeScanner.releaseResources()
+        }
+        super.onPause()
     }
 }

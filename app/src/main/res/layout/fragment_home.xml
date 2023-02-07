@@ -14,7 +14,7 @@
         android:text="Tank Level Monitor"
         android:textAlignment="center"
         android:textColor="@color/white"
-        android:textSize="32sp"
+        android:textSize="24sp"
         app:layout_constraintBottom_toTopOf="@id/pendingSyncText"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -34,6 +34,18 @@
         app:layout_constraintTop_toBottomOf="@id/titleText" />
 
     <TextView
+        android:id="@+id/connectionModeText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Connection Mode"
+        android:textColor="@color/themeBlue"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/pendingSyncText" />
+
+    <TextView
         android:id="@+id/timestampText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -42,7 +54,7 @@
         app:layout_constraintBottom_toTopOf="@id/waterLevelLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/pendingSyncText" />
+        app:layout_constraintTop_toBottomOf="@id/connectionModeText" />
 
     <RelativeLayout
         android:id="@+id/waterLevelLayout"
