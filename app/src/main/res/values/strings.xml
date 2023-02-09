@@ -1,7 +1,21 @@
 <resources>
     <string name="app_name">TankLevelMonitor</string>
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="scan_qr">Scan QR</string>
     <string name="settings">Settings</string>
+    <string name="scan_wifi_devices">Scan Wifi Devices</string>
+    <string name="please_enable_wifi_and_location">Please Enable Wifi and Location.</string>
+    <string name="submit">Submit</string>
+    <string name="enter_password">Enter Password</string>
+    <string name="password">Password</string>
+    <string name="enter_ssid">Enter SSID</string>
+    <string name="ssid">SSID</string>
+    <string name="hotspot_settings">Hotspot Settings (Optional)</string>
+    <string name="router_settings">Router Settings</string>
+    <string name="enter_number">Enter Number</string>
+    <string name="tank_full_depth_cm">Tank Full Depth (cm)</string>
+    <string name="tank_empty_depth_cm">Tank Empty Depth (cm)</string>
+    <string name="level_settings">Level Settings</string>
+    <string name="skip">Skip</string>
+    <string name="updates_will_be_sent_to_online_database">Updates will be sent to online database</string>
 </resources>

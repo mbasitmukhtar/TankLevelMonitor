@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.MutableLiveData
 import androidx.navigation.fragment.findNavController
 import com.example.tanklevelmonitor.R
 import com.example.tanklevelmonitor.databinding.FragmentHomeBinding
@@ -33,6 +34,9 @@ class HomeFragment : Fragment() {
     var userId = ""
     val db = Firebase.database
     lateinit var userReference: DatabaseReference
+    val calendar = Calendar.getInstance()
+
+    var hasDeviceInternet: MutableLiveData<Boolean> = MutableLiveData(true)
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -47,10 +51,15 @@ class HomeFragment : Fragment() {
         userId = SharedPrefs.getUserData(requireContext(), "userId")
 
         checkScreenSize()
-        showProgressBar()
         firstTimeCheck()
+        handleNavigation()
 
-        handleArguments()
+        hasDeviceInternet.observe(viewLifecycleOwner) {
+            if (!it) {
+                binding.connectionModeText.text = "Device has no internet connection."
+//                showAlertForDirectConnection()
+            }
+        }
     }
 
     private fun checkScreenSize() {
@@ -69,10 +78,7 @@ class HomeFragment : Fragment() {
         if (firstTime) {
             findNavController().navigate(R.id.action_homeFragment_to_initFragment)
         } else {
-
-            listenForLevelValue()
-            checkForWifiAndLevelsDataToDisplay()
-            handleNavigation()
+            handleArguments()
         }
     }
 
@@ -96,8 +102,14 @@ class HomeFragment : Fragment() {
             Toast.makeText(
                 requireContext(), "Please connect to device using Wifi.", Toast.LENGTH_LONG
             ).show()
+            binding.connectionModeText.text = "Please connect to device using Wifi/QR."
+
         } else {
             userId = mac
+
+            showProgressBar()
+            listenForLevelValue()
+            checkForWifiAndLevelsDataToDisplay()
         }
 //        arguments?.getCharSequence("qrText")?.let {
 //            SharedPrefs.storeUserData(requireContext(), "userId", it.toString())
@@ -107,6 +119,9 @@ class HomeFragment : Fragment() {
     }
 
     private fun checkForWifiAndLevelsDataToDisplay() {
+        if (userId == "")
+            return
+
         db.getReference("devices").child(userId).get().addOnSuccessListener {
             if (it.exists()) {
                 Log.d(TAG, "checkForWifiAndLevelsDataToDisplay: ${it.value}")
@@ -130,6 +145,14 @@ class HomeFragment : Fragment() {
 
     }
 
+    private fun listenForLevelValue() {
+        if (userId == "")
+            return
+
+        userReference = db.getReference("devices").child(userId)
+        userReference.addValueEventListener(userRefListener)
+    }
+
     private val userRefListener = object : ValueEventListener {
         override fun onDataChange(dataSnapshot: DataSnapshot) {
             // Get User object and use the values to update the UI
@@ -142,6 +165,8 @@ class HomeFragment : Fragment() {
                     SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(Date(timestamp * 1000))
                 Log.d(TAG, "checkForWifiAndLevelsDataToDisplay: dateEpochs: $dateEpochs")
                 binding.timestampText.text = "Timestamp: $dateEpochs"
+
+                compareDateTime(dateEpochs)
             }
 
             val levelValue = userData?.level
@@ -158,10 +183,10 @@ class HomeFragment : Fragment() {
             } else {
                 binding.pendingSyncText.visibility = View.GONE
             }
+
             val ip = userData?.ip
             if (ip == "" || ip == null) {
-                binding.connectionModeText.text = "Device has not internet connection."
-                showAlertForDirectConnection()
+                hasDeviceInternet.postValue(false)
             }
         }
 
@@ -171,10 +196,23 @@ class HomeFragment : Fragment() {
         }
     }
 
+    private fun compareDateTime(dateFromFirebase: String) {
+        val localTime = calendar.time
+//        comparing dates
+        val df = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val localdate = df.format(localTime)
+        val firebaseDate = df.format(dateFromFirebase)
 
-    private fun listenForLevelValue() {
-        userReference = db.getReference("devices").child(userId)
-        userReference.addValueEventListener(userRefListener)
+        if (localdate.compareTo(firebaseDate) > 0) {
+            Log.d(TAG, "todayDate is after previousDate")
+            hasDeviceInternet.postValue(false)
+        } else if (localdate.compareTo(firebaseDate) < 0) {
+            Log.d(TAG, "todayDate is before previousDate")
+        } else if (localdate.compareTo(firebaseDate) == 0) {
+            Log.d(TAG, "todayDate is equal to previousDate")
+            hasDeviceInternet.postValue(true)
+        }
+
     }
 
     private fun showAlertForDirectConnection() {

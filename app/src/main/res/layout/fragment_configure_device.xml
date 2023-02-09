@@ -9,7 +9,6 @@
     android:scrollbarSize="0dp"
     tools:context=".fragments.ConfigureDeviceFragment">
 
-
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -17,101 +16,27 @@
         android:padding="16dp"
         tools:context=".fragments.SettingsFragment">
 
+        <TextView
+            android:id="@+id/errorTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textColor="@color/color_red"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
         <Button
             android:id="@+id/skipButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Skip"
+            android:text="@string/skip"
             android:visibility="gone"
-            app:layout_constraintBottom_toTopOf="@id/levelSettingsCard"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <androidx.cardview.widget.CardView
-            android:id="@+id/levelSettingsCard"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            app:cardCornerRadius="10dp"
-            app:cardElevation="5dp"
             app:layout_constraintBottom_toTopOf="@id/routerSettingsCard"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:padding="8dp">
-
-                <TextView
-                    android:id="@+id/titleText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Level Settings"
-                    android:textAlignment="center"
-                    android:textColor="@color/themeBlue"
-                    android:textSize="18sp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <TextView
-                    android:id="@+id/maxLevelText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Tank Empty Depth (cm)"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/titleText" />
-
-                <EditText
-                    android:id="@+id/maxLevelInput"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:layout_marginVertical="8dp"
-                    android:background="@color/grey_300"
-                    android:hint="Enter Number"
-                    android:inputType="number"
-                    android:padding="8dp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/maxLevelText" />
-
-                <TextView
-                    android:id="@+id/minLevelText"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="32dp"
-                    android:text="Tank Full Depth (cm)"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/maxLevelInput" />
-
-                <EditText
-                    android:id="@+id/minLevelInput"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:layout_marginVertical="8dp"
-                    android:background="@color/grey_300"
-                    android:hint="Enter Number"
-                    android:inputType="number"
-                    android:padding="8dp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/minLevelText" />
-
-                <Button
-                    android:id="@+id/submitLevelButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginVertical="8dp"
-                    android:text="Submit"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/minLevelInput" />
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-        </androidx.cardview.widget.CardView>
+            app:layout_constraintTop_toBottomOf="@+id/errorTextView" />
 
         <androidx.cardview.widget.CardView
             android:id="@+id/routerSettingsCard"
@@ -121,10 +46,10 @@
             android:visibility="gone"
             app:cardCornerRadius="10dp"
             app:cardElevation="5dp"
-            app:layout_constraintBottom_toTopOf="@id/hotspotSettingsCard"
+            app:layout_constraintBottom_toTopOf="@id/levelSettingsCard"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/levelSettingsCard">
+            app:layout_constraintTop_toBottomOf="@id/skipButton">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
@@ -135,7 +60,7 @@
                     android:id="@+id/titleRouterText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Router Settings"
+                    android:text="@string/router_settings"
                     android:textAlignment="center"
                     android:textColor="@color/themeBlue"
                     android:textSize="18sp"
@@ -147,7 +72,7 @@
                     android:id="@+id/ssidText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="SSID"
+                    android:text="@string/ssid"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/titleRouterText" />
@@ -158,7 +83,7 @@
                     android:layout_height="48dp"
                     android:layout_marginVertical="8dp"
                     android:background="@color/grey_300"
-                    android:hint="Enter SSID"
+                    android:hint="@string/enter_ssid"
                     android:inputType="text"
                     android:padding="8dp"
                     app:layout_constraintEnd_toEndOf="parent"
@@ -170,7 +95,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="32dp"
-                    android:text="Password"
+                    android:text="@string/password"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/ssidInput" />
@@ -181,7 +106,7 @@
                     android:layout_height="48dp"
                     android:layout_marginVertical="8dp"
                     android:background="@color/grey_300"
-                    android:hint="Enter Password"
+                    android:hint="@string/enter_password"
                     android:inputType="text"
                     android:padding="8dp"
                     app:layout_constraintEnd_toEndOf="parent"
@@ -193,9 +118,97 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginVertical="8dp"
-                    android:text="Submit"
+                    android:text="@string/submit"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/passwordInput" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.cardview.widget.CardView>
+
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/levelSettingsCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:visibility="gone"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="5dp"
+            app:layout_constraintBottom_toTopOf="@id/hotspotSettingsCard"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/routerSettingsCard">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="8dp">
+
+                <TextView
+                    android:id="@+id/titleText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/level_settings"
+                    android:textAlignment="center"
+                    android:textColor="@color/themeBlue"
+                    android:textSize="18sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/maxLevelText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/tank_empty_depth_cm"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/titleText" />
+
+                <EditText
+                    android:id="@+id/maxLevelInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginVertical="8dp"
+                    android:background="@color/grey_300"
+                    android:hint="@string/enter_number"
+                    android:inputType="number"
+                    android:padding="8dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/maxLevelText" />
+
+                <TextView
+                    android:id="@+id/minLevelText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="32dp"
+                    android:text="@string/tank_full_depth_cm"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/maxLevelInput" />
+
+                <EditText
+                    android:id="@+id/minLevelInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginVertical="8dp"
+                    android:background="@color/grey_300"
+                    android:hint="@string/enter_number"
+                    android:inputType="number"
+                    android:padding="8dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/minLevelText" />
+
+                <Button
+                    android:id="@+id/submitLevelButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="8dp"
+                    android:text="@string/submit"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/minLevelInput" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.cardview.widget.CardView>
@@ -208,9 +221,10 @@
             android:visibility="gone"
             app:cardCornerRadius="10dp"
             app:cardElevation="5dp"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/routerSettingsCard">
+            app:layout_constraintTop_toBottomOf="@id/levelSettingsCard">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
@@ -221,7 +235,7 @@
                     android:id="@+id/titleHotspotText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="HotSpot Settings"
+                    android:text="@string/hotspot_settings"
                     android:textAlignment="center"
                     android:textColor="@color/themeBlue"
                     android:textSize="18sp"
@@ -233,7 +247,7 @@
                     android:id="@+id/ssidHotspotText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="SSID"
+                    android:text="@string/ssid"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/titleHotspotText" />
@@ -244,7 +258,7 @@
                     android:layout_height="48dp"
                     android:layout_marginVertical="8dp"
                     android:background="@color/grey_300"
-                    android:hint="Enter SSID"
+                    android:hint="@string/enter_ssid"
                     android:inputType="text"
                     android:padding="8dp"
                     app:layout_constraintEnd_toEndOf="parent"
@@ -256,7 +270,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="32dp"
-                    android:text="Password"
+                    android:text="@string/password"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/ssidHotspotInput" />
@@ -267,19 +281,20 @@
                     android:layout_height="48dp"
                     android:layout_marginVertical="8dp"
                     android:background="@color/grey_300"
-                    android:hint="Enter Password"
+                    android:hint="@string/enter_password"
                     android:inputType="text"
                     android:padding="8dp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/passwordHotspotText" />
+                    app:layout_constraintTop_toBottomOf="@id/passwordHotspotText"
+                    tools:ignore="TextFields" />
 
                 <Button
                     android:id="@+id/submitHotspotButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginVertical="8dp"
-                    android:text="Submit"
+                    android:text="@string/submit"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/passwordHotspotInput" />
 
@@ -300,7 +315,7 @@
                 android:layout_width="0dp"
                 android:layout_height="300dp"
                 android:scrollbars="vertical"
-                android:text=""
+                android:text="@string/please_enable_wifi_and_location"
                 android:textSize="18sp"
                 app:layout_constraintBottom_toTopOf="@+id/scanButton"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -312,7 +327,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
-                android:text="Scan Wifi Devices"
+                android:text="@string/scan_wifi_devices"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
