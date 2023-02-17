@@ -1,6 +1,9 @@
 package com.example.tanklevelmonitor.fragments
 
 import android.app.AlertDialog
+import android.content.ComponentName
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.text.method.ScrollingMovementMethod
 import android.util.Log
@@ -9,8 +12,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
-import com.example.tanklevelmonitor.R
 import com.example.tanklevelmonitor.databinding.FragmentConfigureDeviceBinding
 import com.example.tanklevelmonitor.utils.Constants
 import com.example.tanklevelmonitor.utils.SharedPrefs
@@ -18,13 +19,13 @@ import com.example.tanklevelmonitor.utils.WifiConnectivity
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
+
 class ConfigureDeviceFragment : Fragment() {
     private val TAG = "ConfigureDeviceFragment"
     lateinit var binding: FragmentConfigureDeviceBinding
 
     lateinit var statusTextView: TextView
 
-    var statusString: String = ""
     var requiredNetworkSSID = ""
     var requiredNetworkPass = ""
 
@@ -110,9 +111,7 @@ class ConfigureDeviceFragment : Fragment() {
             if (it != "") {
                 binding.errorTextView.visibility = View.VISIBLE
                 binding.errorTextView.text = it
-            }
-            else
-            {
+            } else {
                 binding.errorTextView.visibility = View.GONE
             }
         }
@@ -126,8 +125,9 @@ class ConfigureDeviceFragment : Fragment() {
             binding.skipButton.visibility = View.VISIBLE
             binding.scanInfoLayout.visibility = View.GONE
 
-            val mac = wifiConnectivity.makeGetRequest("mac")
-            saveMacAndInit(mac)
+            wifiConnectivity.makeGetRequest("mac")
+
+            handleGetPostResponses()
 
             binding.submitLevelButton.setOnClickListener {
                 showProgressBar()
@@ -135,7 +135,6 @@ class ConfigureDeviceFragment : Fragment() {
                 val max = binding.maxLevelInput.text.toString()
 
                 wifiConnectivity.makePOSTRequestToDevice("level-sett", "min", "max", min, max)
-                hideProgressBar()
             }
 
             binding.submitRouterButton.setOnClickListener {
@@ -145,7 +144,6 @@ class ConfigureDeviceFragment : Fragment() {
 
                 wifiConnectivity.makePOSTRequestToDevice("sta-sett", "ssid", "pass", ssid, pass)
 
-                hideProgressBar()
                 scheduleIpCallFromWifi()
             }
 
@@ -161,16 +159,76 @@ class ConfigureDeviceFragment : Fragment() {
                     apSsid,
                     apPass
                 )
-                hideProgressBar()
             }
 
             binding.skipButton.setOnClickListener {
-                findNavController().navigate(R.id.action_configureDeviceFragment_to_homeFragment)
+//                requireActivity().finish()
+//                startActivity(requireActivity().intent)
+
+//                requireActivity().finishAffinity()
+//                val myIntent = Intent(requireActivity(), MainActivity::class.java)
+//                myIntent.flags =
+//                    Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+//                requireContext().startActivity(myIntent)
+
+                val packageManager: PackageManager = requireContext().packageManager
+                val intent: Intent? =
+                    packageManager.getLaunchIntentForPackage(requireContext().packageName)
+                val componentName: ComponentName? = intent?.component
+                val mainIntent = Intent.makeRestartActivityTask(componentName)
+                requireContext().startActivity(mainIntent)
+                Runtime.getRuntime().exit(0)
+
+//                wifiConnectivity.removeNetworkCallback()
+//                findNavController().navigate(R.id.action_configureDeviceFragment_to_homeFragment)
+            }
+        }
+    }
+
+    private fun handleGetPostResponses() {
+        wifiConnectivity.getRequestResponse.observe(viewLifecycleOwner) {
+            if (it != "") {
+                val items = it.split(",")
+                if (items[0] == "mac") {
+                    saveMacAndInit(items[1])
+                } else if (items[0] == "ip") {
+                    handleIpResponse(items[1])
+                }
+            }
+        }
+
+        wifiConnectivity.postRequestResponse.observe(viewLifecycleOwner) {
+            if (it != "") {
+                hideProgressBar()
+                val items = it.split(",")
+                if (items[0] == "level-sett") {
+                    if (items[1] == "200") {
+                        binding.minLevelInput.text.clear()
+                        binding.maxLevelInput.text.clear()
+                    } else {
+                        binding.errorTextView.text = "Error in sending data."
+                    }
+                } else if (items[0] == "sta-sett") {
+                    if (items[1] == "200") {
+                        binding.ssidInput.text.clear()
+                        binding.passwordInput.text.clear()
+                    } else {
+                        binding.errorTextView.text = "Error in sending data."
+                    }
+                } else if (items[0] == "ap-sett") {
+                    if (items[1] == "200") {
+                        binding.ssidHotspotInput.text.clear()
+                        binding.passwordHotspotInput.text.clear()
+                    } else {
+                        binding.errorTextView.text = "Error in sending data."
+                    }
+                }
             }
         }
     }
 
     private fun saveMacAndInit(mac: String) {
+        Log.d(TAG, "saveMacAndInit: $mac")
         SharedPrefs.storeFirstTimeFlag(
             requireContext(),
             Constants.PREFERENCES_FIRST_TIME, false
@@ -188,12 +246,15 @@ class ConfigureDeviceFragment : Fragment() {
     }
 
     private fun getIpFromDevice() {
-        val ipRequestResponse = wifiConnectivity.makeGetRequest("ip")
+        wifiConnectivity.makeGetRequest("ip")
+    }
+
+    private fun handleIpResponse(ipRequestResponse: String) {
         val builder = AlertDialog.Builder(requireContext())
         builder.setTitle("Message")
             .setPositiveButton("Ok") { dialog, id -> dialog.dismiss() }
 
-        if (ipRequestResponse == "") {
+        if (ipRequestResponse == "" || ipRequestResponse == "(IP unset)") {
             scheduleIpCallFromWifi()
             val message = "Device has no internet connection.."
             builder.setMessage(message)

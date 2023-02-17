@@ -48,7 +48,6 @@ class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        userId = SharedPrefs.getUserData(requireContext(), "userId")
 
         checkScreenSize()
         firstTimeCheck()
@@ -97,7 +96,10 @@ class HomeFragment : Fragment() {
     }
 
     private fun handleArguments() {
+        Log.d(TAG, "handleArguments: ")
         val mac = SharedPrefs.getUserData(requireContext(), USERID)
+        Log.d(TAG, "handleArguments: mac: $mac")
+
         if (mac == "") {
             Toast.makeText(
                 requireContext(), "Please connect to device using Wifi.", Toast.LENGTH_LONG
@@ -111,16 +113,14 @@ class HomeFragment : Fragment() {
             listenForLevelValue()
             checkForWifiAndLevelsDataToDisplay()
         }
-//        arguments?.getCharSequence("qrText")?.let {
-//            SharedPrefs.storeUserData(requireContext(), "userId", it.toString())
-//            userId = it.toString()
-//            SharedPrefs.storeFirstTimeFlag(requireContext(), PREFERENCES_FIRST_TIME, false)
-//        }
     }
 
     private fun checkForWifiAndLevelsDataToDisplay() {
-        if (userId == "")
+        Log.d(TAG, "checkForWifiAndLevelsDataToDisplay: ")
+        if (userId == "") {
+            Log.d(TAG, "checkForWifiAndLevelsDataToDisplay: userid null")
             return
+        }
 
         db.getReference("devices").child(userId).get().addOnSuccessListener {
             if (it.exists()) {
@@ -146,8 +146,12 @@ class HomeFragment : Fragment() {
     }
 
     private fun listenForLevelValue() {
+        Log.d(TAG, "listenForLevelValue: ")
         if (userId == "")
+        {
+            Log.d(TAG, "listenForLevelValue: userid null")
             return
+        }
 
         userReference = db.getReference("devices").child(userId)
         userReference.addValueEventListener(userRefListener)
@@ -156,6 +160,8 @@ class HomeFragment : Fragment() {
     private val userRefListener = object : ValueEventListener {
         override fun onDataChange(dataSnapshot: DataSnapshot) {
             // Get User object and use the values to update the UI
+            hideProgressBar()
+
             val userData = dataSnapshot.getValue<UserData>()
 
             val timestamp = userData?.time
@@ -166,7 +172,7 @@ class HomeFragment : Fragment() {
                 Log.d(TAG, "checkForWifiAndLevelsDataToDisplay: dateEpochs: $dateEpochs")
                 binding.timestampText.text = "Timestamp: $dateEpochs"
 
-                compareDateTime(dateEpochs)
+//                compareDateTime(dateEpochs)
             }
 
             val levelValue = userData?.level
@@ -174,7 +180,6 @@ class HomeFragment : Fragment() {
 
             binding.levelPercentageText.text = "$levelValue%"
             binding.waterLevelMeter.chargeLevel = levelValue?.toInt()
-            hideProgressBar()
 
             val pending = userData?.pending
             if (pending == true) {
@@ -184,10 +189,11 @@ class HomeFragment : Fragment() {
                 binding.pendingSyncText.visibility = View.GONE
             }
 
+            binding.connectionModeText.text = "Connected to online database."
             val ip = userData?.ip
-            if (ip == "" || ip == null) {
-                hasDeviceInternet.postValue(false)
-            }
+//            if (ip == "" || ip == null) {
+//                hasDeviceInternet.postValue(false)
+//            }
         }
 
         override fun onCancelled(databaseError: DatabaseError) {
@@ -200,15 +206,15 @@ class HomeFragment : Fragment() {
         val localTime = calendar.time
 //        comparing dates
         val df = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        val localdate = df.format(localTime)
+        val localDate = df.format(localTime)
         val firebaseDate = df.format(dateFromFirebase)
 
-        if (localdate.compareTo(firebaseDate) > 0) {
+        if (localDate.compareTo(firebaseDate) > 0) {
             Log.d(TAG, "todayDate is after previousDate")
             hasDeviceInternet.postValue(false)
-        } else if (localdate.compareTo(firebaseDate) < 0) {
+        } else if (localDate.compareTo(firebaseDate) < 0) {
             Log.d(TAG, "todayDate is before previousDate")
-        } else if (localdate.compareTo(firebaseDate) == 0) {
+        } else if (localDate.compareTo(firebaseDate) == 0) {
             Log.d(TAG, "todayDate is equal to previousDate")
             hasDeviceInternet.postValue(true)
         }
@@ -244,9 +250,10 @@ class HomeFragment : Fragment() {
         binding.progressBar.visibility = View.VISIBLE
     }
 
-    override fun onStop() {
-        super.onStop()
+    override fun onDestroy() {
+        super.onDestroy()
         try {
+            Log.d(TAG, "onDestroy: trying to remove userRefListener")
             userReference.removeEventListener(userRefListener)
         } catch (e: Exception) {
             Log.d(TAG, "onStop: Exception: ${e.message}")

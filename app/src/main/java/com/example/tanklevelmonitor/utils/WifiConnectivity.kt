@@ -19,9 +19,7 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.MutableLiveData
-import okhttp3.FormBody
-import okhttp3.OkHttpClient
-import okhttp3.Request
+import okhttp3.*
 import java.io.IOException
 
 class WifiConnectivity(context: Context) {
@@ -37,6 +35,10 @@ class WifiConnectivity(context: Context) {
     var status = ""
     var wifiConnected: MutableLiveData<Boolean> = MutableLiveData()
     var statusInfo: MutableLiveData<String> = MutableLiveData("")
+    var getRequestResponse: MutableLiveData<String> = MutableLiveData("")
+    var postRequestResponse: MutableLiveData<String> = MutableLiveData("")
+    val cm: ConnectivityManager =
+        localContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
     init {
         wifiConnected.postValue(false)
@@ -285,24 +287,26 @@ class WifiConnectivity(context: Context) {
             networkRequestBuilder1.setNetworkSpecifier(wifiNetworkSpecifier)
 
             val nr = networkRequestBuilder1.build()
-            val cm: ConnectivityManager =
-                localContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-
-            val networkCallback = object : ConnectivityManager.NetworkCallback() {
-                override fun onAvailable(network: Network) {
-                    super.onAvailable(network)
-                    cm.bindProcessToNetwork(network)
-                    changeUIAfterWifiConnection()
-                    //            cm.unregisterNetworkCallback(networkCallback)
-                }
-            }
 
             cm.requestNetwork(nr, networkCallback)
         }
     }
 
+    private val networkCallback = object : ConnectivityManager.NetworkCallback() {
+        override fun onAvailable(network: Network) {
+            super.onAvailable(network)
+            cm.bindProcessToNetwork(network)
+            changeUIAfterWifiConnection()
+        }
+    }
+
+
     private fun changeUIAfterWifiConnection() {
         wifiConnected.postValue(true)
+    }
+
+    fun removeNetworkCallback() {
+        cm.unregisterNetworkCallback(networkCallback)
     }
 
     fun makePOSTRequestToDevice(
@@ -311,10 +315,7 @@ class WifiConnectivity(context: Context) {
         title2: String,
         value1: String,
         value2: String
-    ): Boolean {
-//        showProgressBar()
-        var isSuccessful = false
-
+    ) {
         val formBody = FormBody.Builder()
             .add(title1, value1)
             .add(title2, value2)
@@ -326,41 +327,67 @@ class WifiConnectivity(context: Context) {
             .build()
 
         try {
-            val response = okHttpClient.newCall(request).execute()
-            isSuccessful = response.isSuccessful
-            Log.d(TAG, "makeHttpRequestToDevice: response ${response.body.toString()}")
-            statusInfo.postValue("")
+            okHttpClient.newCall(request).enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    Log.d(TAG, "makePOSTRequestToDevice: onFailure ${e.message}")
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    Log.d(TAG, "makePOSTRequestToDevice: response: $response")
+
+                    statusInfo.postValue("")
+
+                    postRequestResponse.postValue("$path,${response.code}")
+                }
+            })
+
+//            val response = okHttpClient.newCall(request).execute()
+//            isSuccessful = response.isSuccessful
+//            Log.d(TAG, "makeHttpRequestToDevice: response ${response.body.toString()}")
+//            statusInfo.postValue("")
         } catch (e: Exception) {
             Log.d(TAG, "makeHttpRequestToDevice: exception ${e.message}")
             statusInfo.postValue("Cannot send data to Wifi network.")
         }
-
-//        hideProgressBar()
-        return isSuccessful
     }
 
-    fun makeGetRequest(path: String): String {
+    fun makeGetRequest(path: String) {
+        Log.d(TAG, "makeGetRequest: path: $path")
+
         val request = Request.Builder()
             .url("http://192.168.4.1/$path")
             .build()
 
-        var returnResponse = ""
         try {
-            okHttpClient.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) throw IOException("Unexpected code $response")
 
-                for ((name, value) in response.headers) {
-                    Log.d(TAG, "makeGetRequest: $name: $value")
+            okHttpClient.newCall(request).enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    Log.d(TAG, "makeGetRequest: onFailure: ${e.message}")
                 }
 
-                returnResponse = response.body.toString()
-                statusInfo.postValue("")
-            }
+                override fun onResponse(call: Call, response: Response) {
+                    response.use {
+                        if (!response.isSuccessful) throw IOException("Unexpected code $response")
+
+                        for ((name, value) in response.headers) {
+                            Log.d(TAG, "onResponse: headers: $name: $value")
+                        }
+
+                        val returnResponse = response.body?.string() ?: "No response"
+                        statusInfo.postValue("")
+
+                        Log.d(TAG, "makeGetRequest: response: $response")
+                        Log.d(TAG, "makeGetRequest: response.body.string(): $returnResponse")
+
+                        getRequestResponse.postValue("$path,$returnResponse")
+                    }
+                }
+            })
+
         } catch (e: Exception) {
-            Log.d(TAG, "makeGetRequest: Exception: ${e.message}")
+            Log.d(TAG, "makeGetRequest: $path Exception: ${e.message}")
             statusInfo.postValue("Cannot get data from Wifi network.")
         }
-        return returnResponse
     }
 
 }

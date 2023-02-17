@@ -46,7 +46,7 @@ class SharedPrefs {
         }
 
         fun storeUserData(context: Context, key: String?, value: String?) {
-            Log.d(TAG, "storeUserData: ")
+            Log.d(TAG, "storeUserData: $key, $value")
             prefs = context.getSharedPreferences(PREFERENCES_USER_INFO, Context.MODE_PRIVATE)
             spEditor = prefs.edit()
             spEditor.putString(key, value)

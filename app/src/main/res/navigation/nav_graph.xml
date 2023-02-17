@@ -33,7 +33,10 @@
             app:destination="@id/QRCodeScannerFragment" />
         <action
             android:id="@+id/action_homeFragment_to_initFragment"
-            app:destination="@id/initFragment" />
+            app:destination="@id/initFragment"
+            app:launchSingleTop="true"
+            app:popUpTo="@id/nav_graph"
+            app:popUpToInclusive="true" />
     </fragment>
     <fragment
         android:id="@+id/QRCodeScannerFragment"
