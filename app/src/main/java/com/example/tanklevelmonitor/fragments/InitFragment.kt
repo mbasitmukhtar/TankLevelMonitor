@@ -5,13 +5,13 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
+import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.tanklevelmonitor.R
 import com.example.tanklevelmonitor.databinding.FragmentInitBinding
@@ -103,8 +103,9 @@ class InitFragment : Fragment() {
                     Manifest.permission.ACCESS_NETWORK_STATE,
                     Manifest.permission.CHANGE_NETWORK_STATE,
                     Manifest.permission.INTERNET,
-                    Manifest.permission.NEARBY_WIFI_DEVICES,
                     Manifest.permission.CAMERA,
+                    Manifest.permission.NEARBY_WIFI_DEVICES,
+                    Manifest.permission.POST_NOTIFICATIONS,
                 )
             )
         } else {
@@ -150,7 +151,8 @@ class InitFragment : Fragment() {
         binding.iconImage.setImageResource(R.drawable.img_qr_code)
         binding.infoText.text = "Please Scan the QR Code from your device."
         binding.continueButton.setOnClickListener {
-            findNavController().navigate(R.id.action_initFragment_to_QRCodeScannerFragment)
+//            findNavController().navigate(R.id.action_initFragment_to_QRCodeScannerFragment)
+            findNavController().navigate(R.id.action_initFragment_to_QReaderFragment)
         }
     }
 

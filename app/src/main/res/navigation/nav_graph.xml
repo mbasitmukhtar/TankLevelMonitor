@@ -37,6 +37,9 @@
             app:launchSingleTop="true"
             app:popUpTo="@id/nav_graph"
             app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_homeFragment_to_QReaderFragment"
+            app:destination="@id/QReaderFragment" />
     </fragment>
     <fragment
         android:id="@+id/QRCodeScannerFragment"
@@ -71,5 +74,17 @@
         <action
             android:id="@+id/action_initFragment_to_QRCodeScannerFragment"
             app:destination="@id/QRCodeScannerFragment" />
+        <action
+            android:id="@+id/action_initFragment_to_QReaderFragment"
+            app:destination="@id/QReaderFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/QReaderFragment"
+        android:name="com.example.tanklevelmonitor.fragments.QReaderFragment"
+        android:label="fragment_q_reader"
+        tools:layout="@layout/fragment_q_reader" >
+        <action
+            android:id="@+id/action_QReaderFragment_to_configureDeviceFragment"
+            app:destination="@id/configureDeviceFragment" />
     </fragment>
 </navigation>

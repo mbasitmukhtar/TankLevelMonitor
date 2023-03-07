@@ -15,104 +15,117 @@
         android:textAlignment="center"
         android:textColor="@color/white"
         android:textSize="24sp"
-        app:layout_constraintBottom_toTopOf="@id/pendingSyncText"
+        app:layout_constraintBottom_toTopOf="@id/bodyLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
-        android:id="@+id/pendingSyncText"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/bodyLayout"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="Sync Pending by Device"
-        android:textColor="@color/color_red"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:visibility="gone"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/titleText" />
-
-    <TextView
-        android:id="@+id/connectionModeText"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="Connection Mode"
-        android:textColor="@color/themeBlue"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/pendingSyncText" />
-
-    <TextView
-        android:id="@+id/timestampText"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="Timestamp: "
-        android:textSize="18sp"
-        app:layout_constraintBottom_toTopOf="@id/waterLevelLayout"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/connectionModeText" />
-
-    <RelativeLayout
-        android:id="@+id/waterLevelLayout"
-        android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@id/buttonSettings"
+        android:padding="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/timestampText">
+        app:layout_constraintTop_toBottomOf="@id/titleText">
 
-        <eo.view.batterymeter.BatteryMeterView
-            android:id="@+id/waterLevelMeter"
-            android:layout_width="150dp"
-            android:layout_height="250dp"
-            android:layout_centerInParent="true"
-            app:batteryMeterChargeLevel="0"
-            app:batteryMeterChargingColor="#4caf50"
-            app:batteryMeterColor="#0277bd"
-            app:batteryMeterCriticalChargeLevel="15"
-            app:batteryMeterIndicatorColor="@android:color/transparent"
-            app:batteryMeterTheme="rounded"
-            app:batteryMeterUnknownColor="#e0e0e0" />
 
         <TextView
-            android:id="@+id/levelPercentageText"
+            android:id="@+id/pendingSyncText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Sync Pending by Device"
+            android:textColor="@color/color_red"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/connectionModeText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Connection Mode"
+            android:textColor="@color/themeBlue"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/pendingSyncText" />
+
+        <TextView
+            android:id="@+id/timestampText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Timestamp: "
+            android:textSize="18sp"
+            app:layout_constraintBottom_toTopOf="@id/waterLevelLayout"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/connectionModeText" />
+
+        <RelativeLayout
+            android:id="@+id/waterLevelLayout"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_alignParentTop="true"
-            android:layout_centerInParent="true"
-            android:gravity="center"
-            android:text=""
-            android:textAlignment="center"
-            android:textColor="@color/black"
-            android:textSize="40sp" />
-    </RelativeLayout>
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toTopOf="@id/buttonSettings"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/timestampText">
+
+            <eo.view.batterymeter.BatteryMeterView
+                android:id="@+id/waterLevelMeter"
+                android:layout_width="150dp"
+                android:layout_height="250dp"
+                android:layout_centerInParent="true"
+                app:batteryMeterChargeLevel="0"
+                app:batteryMeterChargingColor="#4caf50"
+                app:batteryMeterColor="#0277bd"
+                app:batteryMeterCriticalChargeLevel="15"
+                app:batteryMeterIndicatorColor="@android:color/transparent"
+                app:batteryMeterTheme="rounded"
+                app:batteryMeterUnknownColor="#e0e0e0" />
+
+            <TextView
+                android:id="@+id/levelPercentageText"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_alignParentTop="true"
+                android:layout_centerInParent="true"
+                android:gravity="center"
+                android:text=""
+                android:textAlignment="center"
+                android:textColor="@color/black"
+                android:textSize="40sp" />
+        </RelativeLayout>
 
 
-    <include
-        android:id="@+id/buttonScanQr"
-        layout="@layout/widget_menu_card"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_margin="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/buttonSettings"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/waterLevelLayout" />
+        <include
+            android:id="@+id/buttonScanQr"
+            layout="@layout/widget_menu_card"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/buttonSettings"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/waterLevelLayout" />
 
-    <include
-        android:id="@+id/buttonSettings"
-        layout="@layout/widget_menu_card"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_margin="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/buttonScanQr"
-        app:layout_constraintTop_toBottomOf="@id/waterLevelLayout" />
+        <include
+            android:id="@+id/buttonSettings"
+            layout="@layout/widget_menu_card"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/buttonScanQr"
+            app:layout_constraintTop_toBottomOf="@id/waterLevelLayout" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <ProgressBar
         android:id="@+id/progress_bar"

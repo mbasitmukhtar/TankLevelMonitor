@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.example.tanklevelmonitor.databinding.FragmentSettingsBinding
+import com.example.tanklevelmonitor.others.ConnectionLiveData
 import com.example.tanklevelmonitor.utils.Constants
 import com.example.tanklevelmonitor.utils.SharedPrefs
 import com.google.firebase.database.ktx.database
@@ -16,6 +17,8 @@ class SettingsFragment : Fragment() {
 
     lateinit var binding: FragmentSettingsBinding
     var userId = ""
+
+    lateinit var connectionLiveData: ConnectionLiveData
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -30,6 +33,29 @@ class SettingsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         userId = SharedPrefs.getUserData(requireContext(), Constants.USERID)
 
+        initNetworkStatus()
+        setOnClickListeners()
+    }
+
+    private fun initNetworkStatus() {
+        connectionLiveData = ConnectionLiveData(requireContext())
+        connectionLiveData.observe(viewLifecycleOwner) { isNetworkAvailable ->
+            if (isNetworkAvailable) {
+                binding.infoTextView.text = "Internet Connected"
+                binding.submitLevelButton.isClickable = true
+                binding.submitHotspotButton.isClickable = true
+                binding.submitRouterButton.isClickable = true
+            } else {
+                binding.infoTextView.text = "No Internet Connection."
+
+                binding.submitLevelButton.isClickable = false
+                binding.submitHotspotButton.isClickable = false
+                binding.submitRouterButton.isClickable = false
+            }
+        }
+    }
+
+    private fun setOnClickListeners() {
         binding.submitLevelButton.setOnClickListener {
             setSubmitLevelButtonListener()
         }

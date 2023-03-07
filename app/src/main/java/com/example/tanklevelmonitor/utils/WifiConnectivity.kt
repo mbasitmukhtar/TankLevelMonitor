@@ -278,13 +278,13 @@ class WifiConnectivity(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 
             val builder = WifiNetworkSpecifier.Builder()
-            builder.setSsid(requiredNetworkSSID)
-            builder.setWpa2Passphrase(requiredNetworkPass)
+            builder.setSsid(requiredNetworkSSID).setWpa2Passphrase(requiredNetworkPass)
+
             val wifiNetworkSpecifier = builder.build()
 
             val networkRequestBuilder1 = NetworkRequest.Builder()
             networkRequestBuilder1.addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
-            networkRequestBuilder1.setNetworkSpecifier(wifiNetworkSpecifier)
+                .setNetworkSpecifier(wifiNetworkSpecifier)
 
             val nr = networkRequestBuilder1.build()
 
@@ -295,8 +295,23 @@ class WifiConnectivity(context: Context) {
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {
             super.onAvailable(network)
+            Log.d(TAG, "onAvailable: ")
             cm.bindProcessToNetwork(network)
             changeUIAfterWifiConnection()
+        }
+
+        override fun onUnavailable() {
+            super.onUnavailable()
+            Log.d(TAG, "onUnavailable: ")
+            wifiConnected.postValue(false)
+//            removeNetworkCallback()
+        }
+
+        override fun onLost(network: Network) {
+            super.onLost(network)
+            Log.d(TAG, "onLost: ")
+            wifiConnected.postValue(false)
+//            removeNetworkCallback()
         }
     }
 
@@ -306,7 +321,14 @@ class WifiConnectivity(context: Context) {
     }
 
     fun removeNetworkCallback() {
-        cm.unregisterNetworkCallback(networkCallback)
+        Log.d(TAG, "removeNetworkCallback: ${cm.boundNetworkForProcess}")
+        try {
+            cm.unregisterNetworkCallback(networkCallback)
+            cm.bindProcessToNetwork(null)
+            Log.d(TAG, "removeNetworkCallback: ${cm.boundNetworkForProcess}")
+        } catch (e: Exception) {
+            Log.d(TAG, "removeNetworkCallback: exception: ${e.message}")
+        }
     }
 
     fun makePOSTRequestToDevice(

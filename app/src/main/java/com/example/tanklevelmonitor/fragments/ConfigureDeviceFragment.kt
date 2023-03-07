@@ -31,6 +31,8 @@ class ConfigureDeviceFragment : Fragment() {
 
     lateinit var wifiConnectivity: WifiConnectivity
 
+    private var deviceHasInternet = false
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -258,14 +260,16 @@ class ConfigureDeviceFragment : Fragment() {
             scheduleIpCallFromWifi()
             val message = "Device has no internet connection.."
             builder.setMessage(message)
+            deviceHasInternet = false
         } else {
+            deviceHasInternet = true
             val message =
                 "Device has internet connection, you may disconnect from device's hotspot."
             builder.setMessage(message)
         }
 
-        val dialog: AlertDialog = builder.create()
-        dialog.show()
+//        val dialog: AlertDialog = builder.create()
+//        dialog.show()
     }
 
     override fun onResume() {
