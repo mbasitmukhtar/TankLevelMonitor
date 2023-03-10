@@ -174,6 +174,18 @@ class WifiConnectivity(context: Context) {
                 } else {
                     val list: List<ScanResult> = wifiManager.scanResults
                     Log.d(TAG, "Scan Results: $list")
+
+                    var requiredNetworkFound = false
+                    for (item in list) {
+                        Log.d(TAG, "List of SSID: ${item.SSID}")
+                        if (item.SSID == requiredNetworkSSID) {
+                            requiredNetworkFound = true
+                        }
+                    }
+
+                    if (!requiredNetworkFound) {
+                        startWifiScan()
+                    }
                     connectToRequiredNetwork(list, requiredNetworkSSID, requiredNetworkPass)
 //                requireContext().unregisterReceiver(wifiReceiver)
                 }
@@ -199,8 +211,12 @@ class WifiConnectivity(context: Context) {
         }
 
         if (networkFound) {
-            localContext.unregisterReceiver(wifiStateReceiver)
-            localContext.unregisterReceiver(wifiScanResultReceiver)
+            try {
+                localContext.unregisterReceiver(wifiStateReceiver)
+                localContext.unregisterReceiver(wifiScanResultReceiver)
+            } catch (e: Exception) {
+                Log.d(TAG, "connectToRequiredNetwork: exception: ${e.message}")
+            }
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 Log.d(TAG, "connectToRequiredNetwork: Connecting to: $requiredNetworkSSID")

@@ -1,4 +1,4 @@
-package com.example.tanklevelmonitor.fragments
+package com.example.tanklevelmonitor.fragments.unused
 
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -11,9 +11,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
 import com.budiyev.android.codescanner.*
-import com.example.tanklevelmonitor.R
 import com.example.tanklevelmonitor.databinding.FragmentQRCodeScannerBinding
 import com.google.zxing.BarcodeFormat
 
@@ -61,10 +59,10 @@ class QRCodeScannerFragment : Fragment() {
 //                SharedPrefs.storeUserData(requireContext(), "userId", it.toString())
                 Log.d(TAG, "setUpScanner: ${it.text}")
                 val bundle = bundleOf("qrText" to it.text)
-                findNavController().navigate(
-                    R.id.action_QRCodeScannerFragment_to_configureDeviceFragment,
-                    bundle
-                )
+//                findNavController().navigate(
+//                    R.id.action_QRCodeScannerFragment_to_configureDeviceFragment,
+//                    bundle
+//                )
             }
         }
 

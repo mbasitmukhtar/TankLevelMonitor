@@ -16,4 +16,8 @@ object Constants {
 
     const val ACTION_SNOOZE = "ACTION_SNOOZE"
     const val EXTRA_NOTIFICATION_ID = "EXTRA_NOTIFICATION_ID"
+    const val DEVICE_TYPE = "DEVICE_TYPE"
+    const val QR_TEXT = "QR_TEXT"
+    const val TANK_MONITOR = "TANK_MONITOR"
+    const val SMART_SWITCH = "SMART_SWITCH"
 }

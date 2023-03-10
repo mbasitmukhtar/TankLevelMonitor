@@ -12,8 +12,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import com.example.tanklevelmonitor.R
 import com.example.tanklevelmonitor.databinding.FragmentConfigureDeviceBinding
 import com.example.tanklevelmonitor.utils.Constants
+import com.example.tanklevelmonitor.utils.Constants.QR_TEXT
 import com.example.tanklevelmonitor.utils.SharedPrefs
 import com.example.tanklevelmonitor.utils.WifiConnectivity
 import java.util.concurrent.Executors
@@ -24,12 +26,12 @@ class ConfigureDeviceFragment : Fragment() {
     private val TAG = "ConfigureDeviceFragment"
     lateinit var binding: FragmentConfigureDeviceBinding
 
-    lateinit var statusTextView: TextView
+    private lateinit var statusTextView: TextView
 
-    var requiredNetworkSSID = ""
-    var requiredNetworkPass = ""
+    private var requiredNetworkSSID = ""
+    private var requiredNetworkPass = ""
 
-    lateinit var wifiConnectivity: WifiConnectivity
+    private lateinit var wifiConnectivity: WifiConnectivity
 
     private var deviceHasInternet = false
 
@@ -51,7 +53,7 @@ class ConfigureDeviceFragment : Fragment() {
         statusTextView.movementMethod = ScrollingMovementMethod()
         statusTextView.append(wifiConnectivity.status)
 
-        arguments?.getString("qrText").let {
+        arguments?.getString(QR_TEXT).let {
             if (it != null) {
                 decodeWifiQRText(it)
             }
@@ -208,21 +210,21 @@ class ConfigureDeviceFragment : Fragment() {
                         binding.minLevelInput.text.clear()
                         binding.maxLevelInput.text.clear()
                     } else {
-                        binding.errorTextView.text = "Error in sending data."
+                        binding.errorTextView.text = getString(R.string.error_in_sending_data)
                     }
                 } else if (items[0] == "sta-sett") {
                     if (items[1] == "200") {
                         binding.ssidInput.text.clear()
                         binding.passwordInput.text.clear()
                     } else {
-                        binding.errorTextView.text = "Error in sending data."
+                        binding.errorTextView.text = getString(R.string.error_in_sending_data)
                     }
                 } else if (items[0] == "ap-sett") {
                     if (items[1] == "200") {
                         binding.ssidHotspotInput.text.clear()
                         binding.passwordHotspotInput.text.clear()
                     } else {
-                        binding.errorTextView.text = "Error in sending data."
+                        binding.errorTextView.text = getString(R.string.error_in_sending_data)
                     }
                 }
             }

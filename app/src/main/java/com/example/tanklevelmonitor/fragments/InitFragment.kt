@@ -19,7 +19,7 @@ import com.example.tanklevelmonitor.databinding.FragmentInitBinding
 class InitFragment : Fragment() {
     private val TAG = "InitFragment"
     lateinit var binding: FragmentInitBinding
-    var permissionsGranted = 0
+    private var permissionsGranted = 0
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -148,12 +148,13 @@ class InitFragment : Fragment() {
         }
 
     private fun initQRScanUI() {
-        binding.iconImage.setImageResource(R.drawable.img_qr_code)
-        binding.infoText.text = "Please Scan the QR Code from your device."
-        binding.continueButton.setOnClickListener {
-//            findNavController().navigate(R.id.action_initFragment_to_QRCodeScannerFragment)
-            findNavController().navigate(R.id.action_initFragment_to_QReaderFragment)
-        }
+        findNavController().navigate(R.id.action_initFragment_to_homeFragment)
+
+//        binding.iconImage.setImageResource(R.drawable.img_qr_code)
+//        binding.infoText.text = "Please Scan the QR Code from your device."
+//        binding.continueButton.setOnClickListener {
+//            findNavController().navigate(R.id.action_initFragment_to_QReaderFragment)
+//        }
     }
 
 }

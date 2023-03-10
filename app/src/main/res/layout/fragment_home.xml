@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/rootLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".fragments.HomeFragment">
@@ -11,11 +12,10 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:background="@color/themeBlue"
-        android:text="Tank Level Monitor"
+        android:text="@string/tank_level_monitor"
         android:textAlignment="center"
         android:textColor="@color/white"
         android:textSize="24sp"
-        app:layout_constraintBottom_toTopOf="@id/bodyLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -35,7 +35,7 @@
             android:id="@+id/pendingSyncText"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Sync Pending by Device"
+            android:text="@string/sync_pending"
             android:textColor="@color/color_red"
             android:textSize="18sp"
             android:textStyle="bold"
@@ -48,7 +48,7 @@
             android:id="@+id/connectionModeText"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Connection Mode"
+            android:text="@string/connection_mode"
             android:textColor="@color/themeBlue"
             android:textSize="18sp"
             android:textStyle="bold"
@@ -60,7 +60,7 @@
             android:id="@+id/timestampText"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Timestamp: "
+            android:text="@string/timestamp"
             android:textSize="18sp"
             app:layout_constraintBottom_toTopOf="@id/waterLevelLayout"
             app:layout_constraintEnd_toEndOf="parent"
@@ -71,7 +71,7 @@
             android:id="@+id/waterLevelLayout"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            app:layout_constraintBottom_toTopOf="@id/buttonSettings"
+            app:layout_constraintBottom_toTopOf="@id/connectToDeviceLayout"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/timestampText">
@@ -102,6 +102,38 @@
                 android:textSize="40sp" />
         </RelativeLayout>
 
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/connectToDeviceLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:visibility="invisible"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/waterLevelLayout"
+            app:layout_constraintBottom_toTopOf="@+id/buttonScanQr">
+
+            <TextView
+                android:id="@+id/connectToDeviceText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/do_you_want_to_connect_to_smart_device_directly"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/connectToDeviceButton"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <Button
+                android:id="@+id/connectToDeviceButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/connect"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/connectToDeviceText"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <include
             android:id="@+id/buttonScanQr"
@@ -112,7 +144,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@id/buttonSettings"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/waterLevelLayout" />
+            app:layout_constraintTop_toBottomOf="@id/connectToDeviceLayout" />
 
         <include
             android:id="@+id/buttonSettings"
@@ -123,9 +155,41 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/buttonScanQr"
-            app:layout_constraintTop_toBottomOf="@id/waterLevelLayout" />
+            app:layout_constraintTop_toBottomOf="@id/connectToDeviceLayout" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/noDevicesLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="20dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/noDeviceText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:text="@string/no_devices_are_set_up"
+            android:textAlignment="center"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toTopOf="@id/addDeviceButton"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <Button
+            android:id="@+id/addDeviceButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/add_a_device"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
 
     <ProgressBar
         android:id="@+id/progress_bar"

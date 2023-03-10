@@ -1,10 +1,10 @@
-package com.example.tanklevelmonitor.fragments
+package com.example.tanklevelmonitor.fragments.unused
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import com.example.tanklevelmonitor.databinding.FragmentInitialQuestionsBinding
 import com.example.tanklevelmonitor.utils.SharedPrefs
 import com.google.firebase.database.ktx.database

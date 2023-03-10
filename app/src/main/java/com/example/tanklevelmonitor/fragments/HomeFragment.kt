@@ -1,7 +1,10 @@
 package com.example.tanklevelmonitor.fragments
 
 import android.Manifest
-import android.app.*
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -24,6 +27,7 @@ import androidx.navigation.fragment.findNavController
 import com.example.tanklevelmonitor.MainActivity
 import com.example.tanklevelmonitor.R
 import com.example.tanklevelmonitor.databinding.FragmentHomeBinding
+import com.example.tanklevelmonitor.models.LevelResponse
 import com.example.tanklevelmonitor.others.ConnectionLiveData
 import com.example.tanklevelmonitor.receivers.SnoozeMessageReceiver
 import com.example.tanklevelmonitor.utils.Constants.ACTION_SNOOZE
@@ -44,8 +48,11 @@ import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.database.ktx.getValue
 import com.google.firebase.ktx.Firebase
+import com.google.gson.Gson
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import okhttp3.*
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.Executors
@@ -110,6 +117,7 @@ class HomeFragment : Fragment() {
 
     private fun firstTimeCheck() {
         Log.d(TAG, "firstTimeCheck: ")
+        SharedPrefs.storeFirstTimeFlag(requireContext(), PREFERENCES_FIRST_TIME, false)
         val firstTime = SharedPrefs.getFirstTimeFlag(requireContext(), PREFERENCES_FIRST_TIME)
         if (firstTime) {
             findNavController().navigate(R.id.action_homeFragment_to_initFragment)
@@ -125,7 +133,7 @@ class HomeFragment : Fragment() {
                 Manifest.permission.ACCESS_FINE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED
         ) {
-            handleArguments()
+            initHomeScreen()
         } else {
             findNavController().navigate(R.id.action_homeFragment_to_initFragment)
         }
@@ -146,49 +154,74 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private fun handleArguments() {
+    private fun initHomeScreen() {
         Log.d(TAG, "handleArguments: ")
-        val mac = SharedPrefs.getUserData(requireContext(), USERID)
+
+//        TODO
+//         check if any observer device is added then continue
+//         if not then clear UI and show a button to add devices
+
+//        above here in case when local db changes
+
+        var mac = SharedPrefs.getUserData(requireContext(), USERID)
+        mac = "abcd"
         Log.d(TAG, "handleArguments: mac: $mac")
 
+
         if (mac == "") {
-            Toast.makeText(
-                requireContext(), "Please connect to device using Wifi.", Toast.LENGTH_LONG
-            ).show()
-            binding.connectionModeText.text = "Please connect to device using Wifi/QR."
-
+            setUpNoDeviceCase()
         } else {
-            userId = mac
-            wifiConnectivity = WifiConnectivity(requireContext())
+            setUpDeviceAddedCase(mac)
+        }
+    }
 
-            initNetworkStatus()
+    private fun setUpNoDeviceCase() {
+//            Toast.makeText(
+//                requireContext(), "Please connect to device using Wifi.", Toast.LENGTH_LONG
+//            ).show()
+//            binding.connectionModeText.text = "Please connect to device using Wifi/QR."
+        binding.noDevicesLayout.visibility = View.VISIBLE
+        binding.bodyLayout.visibility = View.GONE
 
-            createNotificationChannel()
-            showProgressBar()
-            listenForLevelValue()
-            checkForWifiAndLevelsDataToDisplay()
+        binding.addDeviceButton.setOnClickListener {
+            MainActivity.switchBottomTabsLiveData.postValue(1)
+//            findNavController().navigate(R.id.action_homeFragment_to_addDeviceFragment)
+        }
+    }
 
-            scheduleUpdateDifferenceCheck()
-
-            receivingUpdatesFromDeviceBoolean.observe(viewLifecycleOwner) {
-                if (!it) {
-                    binding.connectionModeText.text = "No updates from online database."
-                    if (!isAlertDisplayedRecently) {
-                        showAlertForDirectConnection()
-                    }
-                }
-            }
-
-            snoozeMessageLiveData.observe(viewLifecycleOwner) {
-                if (it) {
-                    notificationAllowedByUser = false
-                    val nMgr =
-                        requireContext().getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                    nMgr.cancel(notificationId)
-                    snoozeMessageLiveData.postValue(false)
+    private fun setUpDeviceAddedCase(mac: String) {
+        receivingUpdatesFromDeviceBoolean.observe(viewLifecycleOwner) {
+            if (!it) {
+                Log.d(TAG, "receivingUpdatesFromDeviceBoolean: false")
+                binding.connectionModeText.text =
+                    getString(R.string.no_updates_from_online_database)
+                if (!isAlertDisplayedRecently) {
+                    showAlertForDirectConnection()
                 }
             }
         }
+
+        snoozeMessageLiveData.observe(viewLifecycleOwner) {
+            if (it) {
+                notificationAllowedByUser = false
+                val nMgr =
+                    requireContext().getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                nMgr.cancel(notificationId)
+                snoozeMessageLiveData.postValue(false)
+            }
+        }
+
+        userId = mac
+        wifiConnectivity = WifiConnectivity(requireContext())
+
+        initNetworkStatus()
+        createNotificationChannel()
+        showProgressBar()
+//            listenForLevelValue()
+        listenForLevelValueFromSql()
+        checkForWifiAndLevelsDataToDisplay()
+
+        scheduleUpdateDifferenceCheck()
     }
 
     private fun initNetworkStatus() {
@@ -197,11 +230,16 @@ class HomeFragment : Fragment() {
         Executors.newSingleThreadScheduledExecutor().schedule({
             if (!HelperClass.hasInternetConnection(requireContext())) {
                 Log.d(TAG, "initNetworkStatus: no active network")
-                binding.connectionModeText.text = "No Active Network."
-                hideProgressBar()
+                binding.connectionModeText.text = getString(R.string.no_active_network)
+
+                Log.d(TAG, "initNetworkStatus: connectedToHotspot: $connectedToHotspot")
                 if (!connectedToHotspot) {
+                    Log.d(TAG, "initNetworkStatus: sending false")
+
                     receivingUpdatesFromDeviceBoolean.postValue(false)
                 }
+
+                hideProgressBar()
             }
         }, 5, TimeUnit.SECONDS)
 
@@ -210,11 +248,14 @@ class HomeFragment : Fragment() {
         { isNetworkAvailable ->
             Log.d(TAG, "initNetworkStatus: isNetworkAvailable: $isNetworkAvailable")
             if (isNetworkAvailable) {
+
                 dataConnectionAvailable = true
-                binding.connectionModeText.text = "Internet Connected."
+                binding.connectionModeText.text = getString(R.string.internet_connected)
+
+                binding.connectToDeviceLayout.visibility = View.GONE
             } else {
                 dataConnectionAvailable = false
-                binding.connectionModeText.text = "No Internet Connection."
+                binding.connectionModeText.text = getString(R.string.no_internet_connection)
                 if (!connectedToHotspot) {
                     receivingUpdatesFromDeviceBoolean.postValue(false)
                 } else {
@@ -254,6 +295,60 @@ class HomeFragment : Fragment() {
 
     }
 
+    private fun listenForLevelValueFromSql() {
+        val path = "level"
+        Log.d(TAG, "listenForLevelValueFromSql: ")
+        lifecycleScope.launch {
+            val request = Request.Builder()
+                .url("https://a314e16a-526a-4bea-b200-a5ef020e32f0.mock.pstmn.io/$path")
+                .build()
+
+            val okHttpClient = OkHttpClient()
+            val gson = Gson()
+
+            while (true) {
+
+                try {
+                    okHttpClient.newCall(request).enqueue(object : Callback {
+                        override fun onFailure(call: Call, e: IOException) {
+                            Log.d(TAG, "makeGetRequest: onFailure: ${e.message}")
+                        }
+
+                        override fun onResponse(call: Call, response: Response) {
+                            response.use {
+                                if (!response.isSuccessful) throw IOException("Unexpected code $response")
+
+                                for ((name, value) in response.headers) {
+                                    Log.d(TAG, "onResponse: headers: $name: $value")
+                                }
+
+                                val returnResponse = response.body?.string() ?: "No response"
+//                            statusInfo.postValue("")
+
+                                Log.d(TAG, "makeGetRequest: response: $response")
+                                Log.d(
+                                    TAG,
+                                    "makeGetRequest: response.body.string(): $returnResponse"
+                                )
+                                val json = gson.fromJson(returnResponse, LevelResponse::class.java)
+
+                                binding.levelPercentageText.text = "${json.level}%"
+                                binding.waterLevelMeter.chargeLevel = json.level.toInt()
+
+                            }
+                        }
+                    })
+
+                } catch (e: Exception) {
+                    Log.d(TAG, "makeGetRequest: $path Exception: ${e.message}")
+//                statusInfo.postValue("Cannot get data from Wifi network.")
+                }
+                delay(5000)
+            }
+
+        }
+    }
+
     private fun listenForLevelValue() {
         Log.d(TAG, "listenForLevelValue: ")
         if (userId == "") {
@@ -280,7 +375,8 @@ class HomeFragment : Fragment() {
                 val dateEpochs =
                     SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(Date(timestamp * 1000))
                 Log.d(TAG, "checkForWifiAndLevelsDataToDisplay: dateEpochs: $dateEpochs")
-                binding.timestampText.text = "Timestamp: $dateEpochs"
+                binding.timestampText.text =
+                    getString(R.string.timestamp) + getString(R.string.space) + dateEpochs
 
                 keepCheckingDateDiff = true
                 lastUpdatedInFirebase = dateEpochs
@@ -299,7 +395,7 @@ class HomeFragment : Fragment() {
 
             val pending = userData?.pending
             if (pending == true) {
-                binding.pendingSyncText.text = "Sync Pending by device."
+                binding.pendingSyncText.text = getString(R.string.sync_pending)
                 binding.pendingSyncText.visibility = View.VISIBLE
             } else {
                 binding.pendingSyncText.visibility = View.GONE
@@ -308,7 +404,7 @@ class HomeFragment : Fragment() {
             if (firstDatabaseRead) {
                 firstDatabaseRead = false
             } else {
-                binding.connectionModeText.text = "Connected to online database."
+                binding.connectionModeText.text = getString(R.string.connected_to_database)
             }
 
             val ip = userData?.ip
@@ -379,8 +475,10 @@ class HomeFragment : Fragment() {
         if (localDateSplit[0] > firebaseDateSplit[0]) {
             Log.d(TAG, "localDate is after dateFromFirebase")
             receivingUpdatesFromDeviceBoolean.postValue(false)
+
         } else if (localDateSplit[0] < firebaseDateSplit[0]) {
             Log.d(TAG, "localDate is before dateFromFirebase")
+
         } else if (localDateSplit[0] == (firebaseDateSplit[0])) {
             Log.d(TAG, "localDate is equal to dateFromFirebase")
 
@@ -405,33 +503,41 @@ class HomeFragment : Fragment() {
     }
 
     private fun showAlertForDirectConnection() {
+        Log.d(TAG, "showAlertForDirectConnection: ")
         keepCheckingDateDiff = false
+
+        binding.connectToDeviceLayout.visibility = View.VISIBLE
+        binding.connectToDeviceButton.setOnClickListener {
+            connectToDeviceHotspot()
+        }
+
         isAlertDisplayedRecently = true
         Executors.newSingleThreadScheduledExecutor().schedule({
             isAlertDisplayedRecently = false
-        }, 15, TimeUnit.SECONDS)
+        }, 1, TimeUnit.MINUTES)
 
-        val builder = AlertDialog.Builder(requireContext())
-        builder
-            .setTitle("Message")
-            .setMessage("Do you want to connect to smart device directly?")
-            .setCancelable(false)
-            .setNegativeButton(
-                "No"
-            ) { dialog, id ->
-                run {
-                    dialog.cancel()
-                }
-            }.setPositiveButton(
-                "Yes"
-            ) { dialog, id ->
-                run {
-                    connectToDeviceHotspot()
-                }
-            }
 
-        val dialog: AlertDialog = builder.create()
-        dialog.show()
+//        val builder = AlertDialog.Builder(requireContext())
+//        builder
+//            .setTitle("Message")
+//            .setMessage("Do you want to connect to smart device directly?")
+//            .setCancelable(false)
+//            .setNegativeButton(
+//                "No"
+//            ) { dialog, id ->
+//                run {
+//                    dialog.cancel()
+//                }
+//            }.setPositiveButton(
+//                "Yes"
+//            ) { dialog, id ->
+//                run {
+//                    connectToDeviceHotspot()
+//                }
+//            }
+//
+//        val dialog: AlertDialog = builder.create()
+//        dialog.show()
     }
 
     private fun connectToDeviceHotspot() {
@@ -449,6 +555,7 @@ class HomeFragment : Fragment() {
         wifiConnectivity.wifiConnected.observe(viewLifecycleOwner) {
             if (it) {
                 connectedToHotspot = true
+                binding.connectToDeviceLayout.visibility = View.GONE
                 Log.d(TAG, "connectToDeviceHotspot: $connectedToHotspot")
                 connectionLiveData.removeObservers(viewLifecycleOwner)
                 getLevelsFromDevice()
@@ -465,7 +572,8 @@ class HomeFragment : Fragment() {
                 if (items[0] == "level") {
                     val level = items[1]
 
-                    binding.connectionModeText.text = "Getting updates from smart device."
+                    binding.connectionModeText.text =
+                        getString(R.string.getting_updates_from_device)
                     binding.timestampText.text = ""
                     binding.levelPercentageText.text = "$level%"
                     binding.waterLevelMeter.chargeLevel = level.toInt()
@@ -484,10 +592,12 @@ class HomeFragment : Fragment() {
             Log.d(TAG, "getLevelsFromDevice: stopping get calls")
             wifiConnectivity.removeNetworkCallback()
 
+            keepCheckingDateDiff = true
             initNetworkStatus()
-            listenForLevelValue()
+//            listenForLevelValue()
+            listenForLevelValueFromSql()
             scheduleUpdateDifferenceCheck()
-            binding.connectionModeText.text = "Waiting for a connection"
+            binding.connectionModeText.text = getString(R.string.waiting_for_connection)
         }
     }
 
